@@ -1,126 +1,185 @@
-# qzone 
+# QZone SDK
 
-> 提供qq空间基础功能接口
+[![Go Version](https://img.shields.io/github/go-mod/go-version/intchensc/qzone)](https://github.com/intchensc/qzone)
+[![GitHub license](https://img.shields.io/github/license/intchensc/qzone)](https://github.com/intchensc/qzone/blob/main/LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/intchensc/qzone)](https://goreportcard.com/report/github.com/intchensc/qzone)
 
-**！！本项目尚未开发完毕,改动较大！！**
+> 一个强大的 QQ 空间 Go 语言开发工具包，提供简单易用的接口来操作 QQ 空间功能。
 
-开发进度
+## 📁 项目结构
+
+```
+qzone/
+├── api/                    # API 实现目录
+│   ├── common/            # 公共功能
+│   ├── friend/            # 好友相关 API
+│   ├── group/             # 群组相关 API
+│   ├── history/           # 历史记录相关 API
+│   ├── shuoshuo/          # 说说相关 API
+│   └── api.go             # API 聚合器
+├── auth/                   # 认证相关
+│   ├── base.go            # 基础认证接口
+│   ├── cookie.go          # Cookie 认证实现
+│   └── qrcode.go          # 二维码认证实现
+├── test/                   # 测试用例
+└── qzone.go               # 主入口文件
+```
+
+## ✨ 特性
+
+- 🔐 支持扫码登录，安全便捷
+- 🚀 模块化的 API 设计，接口清晰
+- 📝 完整的说说操作支持
+- 👥 好友与群组管理功能
+- 🔄 异步操作支持
+- 📦 零第三方存储依赖
+- 🛡️ 稳定可靠的错误处理机制
+
+## 🚀 快速开始
+
+### 安装
+
+```bash
+go get -u github.com/intchensc/qzone
+```
+
+### 基础使用示例
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/intchensc/qzone"
+)
+
+func main() {
+    // 创建 QZone 实例
+    q := qzone.New(&auth.QrAuth{})
+    
+    // 登录
+    if err := q.Login(); err != nil {
+        panic(err)
+    }
+    
+    // 使用说说 API
+    shuoshuo := q.API.ShuoShuo()
+    // 获取说说列表
+    list, err := shuoshuo.List()
+    if err != nil {
+        panic(err)
+    }
+    
+    // 使用好友 API
+    friend := q.API.Friend()
+    // 获取好友列表
+    friends, err := friend.List()
+    if err != nil {
+        panic(err)
+    }
+}
+```
+
+## 📚 API 文档
+
+### 认证相关
+
+```go
+// 创建实例并使用扫码登录
+q := qzone.New(nil)
+err := q.Login()
+
+// 使用 Cookie 登录
+q := qzone.New(&auth.CookieAuth{Cookie: "your-cookie"})
+```
+
+### 说说操作 (ShuoShuoAPI)
+
+```go
+api := q.API.ShuoShuo()
+
+// 获取说说列表
+list, err := api.List()
+
+// 发布说说
+err := api.Publish(content, images)
+
+// 获取说说评论
+comments, err := api.Comments(tid)
+```
+
+### 好友操作 (FriendAPI)
+
+```go
+api := q.API.Friend()
+
+// 获取好友列表
+list, err := api.List()
+
+// 获取好友详情
+detail, err := api.Detail(uin)
+```
+
+### 群组操作 (GroupAPI)
+
+```go
+api := q.API.Group()
+
+// 获取群组列表
+list, err := api.List()
+
+// 获取群成员
+members, err := api.Members(groupId)
+```
+
+### 历史记录 (HistoryAPI)
+
+```go
+api := q.API.History()
+
+// 获取历史记录
+history, err := api.Get()
+```
+
+## 🔧 高级配置
+
+### 自定义认证实现
+
+你可以通过实现 `auth.BaseAuth` 接口来创建自己的认证方式：
+
+```go
+type BaseAuth interface {
+    Login() error
+    GetCookie() string
+}
+```
+
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+1. Fork 本仓库
+2. 创建您的特性分支 (git checkout -b feature/AmazingFeature)
+3. 提交您的更改 (git commit -m 'Add some AmazingFeature')
+4. 推送到分支 (git push origin feature/AmazingFeature)
+5. 打开一个 Pull Request
+
+## 📝 开发计划
+
 - [x] 基础接口封装
 - [x] 扫码登录
 - [ ] 规范接口返回字段
 - [ ] 接口的统一分页设计
-- [ ] 对低级别接口进一步封装，实现便捷功能
-- [ ] 探索“与我相关”推送接口，解析历史数据
-- [ ] 探索账号密码、便捷登录
+- [ ] 便捷功能封装
+- [ ] "与我相关"推送接口
+- [ ] 多种登录方式支持
 
 
-- 导入项目
-```go
-go get -u github.com/HHU-47133/qzone
-```
-## 功能接口
-- 具体实现请参看 `examples/*_test.go`
-- 管理类实现 `manager.go`; 接口实现 `api.go`
-### 登录流程
-```go
-// 1、创建对象
-qm := qzone.NewQZone()
-```
-```go
-// 2、获取二维码
-// 成功返回"base64编码的二维码数据"
-b64s, err := qm.GenerateQRCode()
-```
-```go
-// 3、检测二维码扫码状态
-// 0成功 1未扫描 2未确认 3已过期 -1系统错误
-status, err := qm.CheckQRCodeStatus()
 
-// 成功登录后qm对象会暴露公开字段qm.Info
-type info struct {
-    QQ          string // QQ空间的账号
-    Cookie      string // 登录成功的Cookie，保存以便下次使用
-    ExpiredTime time.Time
-}
+## 🌟 Star History
 
-// 保存cookie方便下次创建对象
-cookie := qm.Info.Cookie
-```
-- 从cookie创建
-```go
-// 你可以直接通过cookie创建一个空间操作对象
-// cookie可以从扫码登录成功后qm.Info.Cookie获取
-qm := qzone.NewQZone().WithCookie(cookie)
-```
-### 好友、群相关
-- 群列表获取
-```go
-func (q *QZone) QQGroupList() ([]*models.QQGroupResp, error)
-```
-- 好友获取
-```go
-func (q *QZone) FriendList() ([]*models.FriendInfoEasyResp, error)
-```
-- 群友(非好友)获取
-```go
-func (q *QZone) QQGroupMemberList(gid int64) ([]*models.QQGroupMemberResp, error)
-```
-- 好友详细信息获取
-```go
-// uin:本人QQ
-func (q *QZone) FriendInfoDetail(uin int64) (*models.FriendInfoDetailResp, error)
-```
-### 说说相关
-- 说说发布
-```go
-// content:文本内容
-// base64imgList:图片数组,为nil则只发文字
-func (q *QZone) PublishShuoShuo(content string, base64imgList []string) (*models.ShuoShuoPublishResp, error)
-```
-- 说说获取
-```go
-// uin:有访问权限的QQ
-// num:获取说说个数
-// ms:延迟访问毫秒
-func (q *QZone) ShuoShuoList(uin int64, num int64, ms int64) (ShuoShuo []*models.ShuoShuoResp, err error)
-```
-- 说说总数获取
-```go
-// uin:有访问权限的QQ
-// 实际能访问的说说数量<=说说总数(封存动态)
-func (q *QZone) GetShuoShuoCount(uin int64) (cnt int64, err error)
-```
-- 说说一级评论总数
-```go
-// tid:说说id（限制本人）
-func (q *QZone) GetLevel1CommentCount(tid string) (cnt int64, err error)
-```
-- 说说评论内容获取
-```go
-// tid:说说id（限制本人）
-// num:评论上限
-// ms:延迟访问毫秒
-func (q *QZone) ShuoShuoCommentList(tid string, num int64, ms int64) 
-```
-- 最新说说获取
-```go
-// uin:有访问权限的QQ
-func (q *QZone) GetLatestShuoShuo(uin int64) (*models.ShuoShuoResp, error)
-```
+如果这个项目对您有帮助，请给我们一个 star！您的支持是我们持续改进的动力。
 
-- 历史消息数据获取
-```go
-// GetQZoneHistory 获取QQ空间历史消息（限制本人）
-func (q *QZone) GetQZoneHistory() ([]*models.QZoneHistoryItem, error)
-````
+---
 
-### 其他
-- 单个说说地址
-```go
-"https://user.qzone.qq.com/"+QQ号+"/mood/"+说说tid
-```
-
-
-### model 
-
-- 请求响应结构，简洁信息参考 `model.go` 文件，详细信息参考 `types.go` 文件
+> 📢 注意：本项目仍在积极开发中，API 可能会有重大变更。建议在生产环境使用前关注版本更新。
