@@ -29,12 +29,12 @@ var (
 	getLikeListURL    = "https://h5.qzone.qq.com/proxy/domain/users.qzone.qq.com/cgi-bin/likes/get_like_list_app?"
 )
 
-type ShuoShuoAPI struct {
+type API struct {
 	*common.BaseAPI
 }
 
-// PublishShuoShuo 发布说说，content文本内容，base64imgList图片数组
-func (s *ShuoShuoAPI) Publish(content string, base64imgList []string) (*ShuoShuoPublishResp, error) {
+// Publish 发布说说，content文本内容，base64imgList图片数组
+func (s *API) Publish(content string, base64imgList []string) (*ShuoShuoPublishResp, error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -80,7 +80,7 @@ func (s *ShuoShuoAPI) Publish(content string, base64imgList []string) (*ShuoShuo
 		epr.Subrichtype = "1"
 		epr.PicBo = strings.Join(picBoList, ",")
 	}
-	url := fmt.Sprintf(emotionPublishURL, s.Gtk2)
+	url := fmt.Sprintf(emotionPublishURL, s.Gtk)
 	// payload := strings.NewReader(structToStr(epr))
 	var data string
 	V := strings.NewReader(common.StructToStr(epr))
@@ -91,13 +91,6 @@ func (s *ShuoShuoAPI) Publish(content string, base64imgList []string) (*ShuoShuo
 		UserAgent(common.UA).ContentType(common.ContentType).ToString(&data).
 		Header("cookie", s.Cookie).
 		BodyReader(V).Fetch(context.Background())
-
-	// data, err := DialRequest(NewRequest(WithMethod("POST"), WithUrl(url), WithBody(payload),
-	// 	WithHeader(map[string]string{
-	// 		"referer": userQzoneURL,
-	// 		"origin":  userQzoneURL,
-	// 		"cookie":  s.Cookie,
-	// 	})))
 	if err != nil {
 		// er := errors.New("说说发布请求错误:" + err.Error())
 		log.Println("说说发布失败:", err)
@@ -119,8 +112,8 @@ func (s *ShuoShuoAPI) Publish(content string, base64imgList []string) (*ShuoShuo
 	return ssp, nil
 }
 
-// ShuoShuoList 获取所有说说 实际能访问的说说个数 <= 说说总数(空间仅展示近半年等情况) (有空间访问权限即可)
-func (s *ShuoShuoAPI) List(uin int64, num int64, ms int64) (ShuoShuo []*ShuoShuoResp, err error) {
+// List 获取所有说说 实际能访问的说说个数 <= 说说总数(空间仅展示近半年等情况) (有空间访问权限即可)
+func (s *API) List(uin int64, num int64, ms int64) (ShuoShuo []*ShuoShuoResp, err error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -154,8 +147,8 @@ func (s *ShuoShuoAPI) List(uin int64, num int64, ms int64) (ShuoShuo []*ShuoShuo
 	return ShuoShuo, nil
 }
 
-// GetShuoShuoCount 获取用户QQ号为uin的说说总数（有空间访问权限即可）
-func (s *ShuoShuoAPI) Count(uin int64) (int64, error) {
+// Count 获取用户QQ号为uin的说说总数（有空间访问权限即可）
+func (s *API) Count(uin int64) (int64, error) {
 	if s.Err != nil {
 		return -1, s.Err
 	}
@@ -166,7 +159,7 @@ func (s *ShuoShuoAPI) Count(uin int64) (int64, error) {
 		Pos:                "0",
 		Num:                "1",
 		Replynum:           "0",
-		GTk:                s.Gtk2,
+		GTk:                s.Gtk,
 		Callback:           "_preloadCallback",
 		CodeVersion:        "1",
 		Format:             "json",
@@ -179,11 +172,6 @@ func (s *ShuoShuoAPI) Count(uin int64) (int64, error) {
 		Header("referer", userQzoneURL).
 		Header("origin", userQzoneURL).
 		Header("cookie", s.Cookie).ToString(&data).Fetch(context.Background())
-	// data, err := DialRequest(NewRequest(WithUrl(url), WithHeader(map[string]string{
-	// 	"referer": userQzoneURL,
-	// 	"origin":  userQzoneURL,
-	// 	"cookie":  s.Cookie,
-	// })))
 	if err != nil {
 		// er := errors.New("说说总数请求错误:" + err.Error())
 		log.Println("说说总数获取失败:", err)
@@ -202,18 +190,15 @@ func (s *ShuoShuoAPI) Count(uin int64) (int64, error) {
 }
 
 // GetLevel1CommentCount 获取一级评论总数(限制本人)
-func (s *ShuoShuoAPI) GetLevel1CommentCount(tid string) (int64, error) {
+func (s *API) GetLevel1CommentCount(tid string) (int64, error) {
 	if s.Err != nil {
 		return -1, s.Err
 	}
-	url := fmt.Sprintf(getCommentsURL, strconv.FormatInt(s.Qq, 10), 0, 1, tid, s.Gtk2)
+	url := fmt.Sprintf(getCommentsURL, strconv.FormatInt(s.Qq, 10), 0, 1, tid, s.Gtk)
 	var data string
 	err := requests.
 		URL(url).
 		Header("cookie", s.Cookie).ToString(&data).Fetch(context.Background())
-	// data, err := DialRequest(NewRequest(WithUrl(url), WithHeader(map[string]string{
-	// 	"cookie": s.Cookie,
-	// })))
 	if err != nil {
 		// er := errors.New("说说评论请求错误:" + err.Error())
 		log.Println("说说评论请求失败:", err)
@@ -233,8 +218,8 @@ func (s *ShuoShuoAPI) GetLevel1CommentCount(tid string) (int64, error) {
 	return numOfComments, nil
 }
 
-// ShuoShuoCommentList 根据说说ID获取评论（限制本人）
-func (s *ShuoShuoAPI) CommentList(tid string, num int64, ms int64) (comments []*Comment, err error) {
+// CommentList 根据说说ID获取评论（限制本人）
+func (s *API) CommentList(tid string, num int64, ms int64) (comments []*Comment, err error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -269,8 +254,8 @@ func (s *ShuoShuoAPI) CommentList(tid string, num int64, ms int64) (comments []*
 	return comments, nil
 }
 
-// GetLatestShuoShuo 获取用户QQ号为uin的最新说说（有空间访问权限即可）
-func (s *ShuoShuoAPI) Latest(uin int64) (*ShuoShuoResp, error) {
+// Latest 获取用户QQ号为uin的最新说说（有空间访问权限即可）
+func (s *API) Latest(uin int64) (*ShuoShuoResp, error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -284,11 +269,11 @@ func (s *ShuoShuoAPI) Latest(uin int64) (*ShuoShuoResp, error) {
 }
 
 // GetShuoShuoCommentsRaw 从第pos条评论开始获取num条评论，num最大为20
-func (s *ShuoShuoAPI) shuoShuoCommentsRaw(num int, pos int, tid string) ([]*Comment, error) {
+func (s *API) shuoShuoCommentsRaw(num int, pos int, tid string) ([]*Comment, error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
-	url := fmt.Sprintf(getCommentsURL, strconv.FormatInt(s.Qq, 10), pos, num, tid, s.Gtk2)
+	url := fmt.Sprintf(getCommentsURL, strconv.FormatInt(s.Qq, 10), pos, num, tid, s.Gtk)
 	var data string
 	err := requests.
 		URL(url).
@@ -331,7 +316,7 @@ func (s *ShuoShuoAPI) shuoShuoCommentsRaw(num int, pos int, tid string) ([]*Comm
 }
 
 // UploadImage 上传图片
-func (s *ShuoShuoAPI) uploadImage(base64img string) (*UploadImageResp, error) {
+func (s *API) uploadImage(base64img string) (*UploadImageResp, error) {
 	uir := UploadImageRequest{
 		Filename:      "filename",
 		Uin:           s.Qq,
@@ -351,13 +336,13 @@ func (s *ShuoShuoAPI) uploadImage(base64img string) (*UploadImageResp, error) {
 		HdHeight:      "10000",
 		HdQuality:     "96",
 		BackUrls:      "http://upbak.photo.qzone.qq.com/cgi-bin/upload/cgi_upload_image,http://119.147.64.75/cgi-bin/upload/cgi_upload_image",
-		URL:           fmt.Sprintf(uploadImageURL, s.Gtk2),
+		URL:           fmt.Sprintf(uploadImageURL, s.Gtk),
 		Base64:        "1",
 		Picfile:       base64img,
 		Qzreferrer:    userQzoneURL + "/" + strconv.FormatInt(s.Qq, 10),
 	}
 
-	url := fmt.Sprintf(uploadImageURL, s.Gtk2)
+	url := fmt.Sprintf(uploadImageURL, s.Gtk)
 	// payload := strings.NewReader(structToStr(uir))
 	var data string
 	V := strings.NewReader(common.StructToStr(uir))
@@ -368,12 +353,6 @@ func (s *ShuoShuoAPI) uploadImage(base64img string) (*UploadImageResp, error) {
 		Header("cookie", s.Cookie).
 		BodyReader(V).
 		ToString(&data).Fetch(context.Background())
-	// data, err := DialRequest(NewRequest(WithMethod("POST"), WithUrl(url), WithBody(payload),
-	// 	WithHeader(map[string]string{
-	// 		"referer": userQzoneURL,
-	// 		"origin":  userQzoneURL,
-	// 		"cookie":  s.Cookie,
-	// 	})))
 	if err != nil {
 		log.Println("上传图片失败 ", err)
 		log.Println(data)
@@ -400,7 +379,7 @@ func (s *ShuoShuoAPI) uploadImage(base64img string) (*UploadImageResp, error) {
 }
 
 // getPicBoAndRichval 获取已上传图片重要信息
-func (s *ShuoShuoAPI) getPicBoAndRichval(data *UploadImageResp) (picBo, richval string, err error) {
+func (s *API) getPicBoAndRichval(data *UploadImageResp) (picBo, richval string, err error) {
 	var flag bool
 	if data.Ret != 0 {
 		err = errors.New("已上传图片信息错误:fuck")
@@ -416,7 +395,7 @@ func (s *ShuoShuoAPI) getPicBoAndRichval(data *UploadImageResp) (picBo, richval 
 }
 
 // ShuoShuoListRaw 获取用户qq号为uin且最多num个说说列表，每个说说获取上限replynum个评论数量
-func (s *ShuoShuoAPI) shuoShuoListRaw(uin int64, num int, pos int, replynum int) ([]*ShuoShuoResp, error) {
+func (s *API) shuoShuoListRaw(uin int64, num int, pos int, replynum int) ([]*ShuoShuoResp, error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -427,7 +406,7 @@ func (s *ShuoShuoAPI) shuoShuoListRaw(uin int64, num int, pos int, replynum int)
 		Pos:                strconv.Itoa(pos),
 		Num:                strconv.Itoa(num),
 		Replynum:           strconv.Itoa(replynum),
-		GTk:                s.Gtk2,
+		GTk:                s.Gtk,
 		Callback:           "_preloadCallback",
 		CodeVersion:        "1",
 		Format:             "json",
@@ -442,11 +421,6 @@ func (s *ShuoShuoAPI) shuoShuoListRaw(uin int64, num int, pos int, replynum int)
 		UserAgent(common.UA).ContentType(common.ContentType).
 		Header("origin", userQzoneURL).
 		Header("cookie", s.Cookie).ToString(&data).Fetch(context.Background())
-	// data, err := DialRequest(NewRequest(WithUrl(url), WithHeader(map[string]string{
-	// 	"referer": userQzoneURL,
-	// 	"origin":  userQzoneURL,
-	// 	"cookie":  s.Cookie,
-	// })))
 	if err != nil {
 		// er := errors.New("说说列表请求错误:" + err.Error())
 		log.Println("说说列表获取失败:", err)
@@ -504,7 +478,7 @@ func (s *ShuoShuoAPI) shuoShuoListRaw(uin int64, num int, pos int, replynum int)
 }
 
 // DoLike 说说空间点赞 TODO:疑似无效
-func (s *ShuoShuoAPI) DoLike(tid string) (*LikeResp, error) {
+func (s *API) DoLike(tid string) (*LikeResp, error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -518,7 +492,7 @@ func (s *ShuoShuoAPI) DoLike(tid string) (*LikeResp, error) {
 		Appid:      "311",
 	}
 	lr.Curkey = lr.Unikey
-	url := fmt.Sprintf(likeURL, s.Gtk2)
+	url := fmt.Sprintf(likeURL, s.Gtk)
 	var data string
 	V := strings.NewReader(common.StructToStr(lr))
 	err := requests.
@@ -528,13 +502,6 @@ func (s *ShuoShuoAPI) DoLike(tid string) (*LikeResp, error) {
 		Header("origin", userQzoneURL).
 		Header("cookie", s.Cookie).
 		BodyReader(V).ToString(&data).Fetch(context.Background())
-	// payload := strings.NewReader(structToStr(lr))
-	// data, err := DialRequest(NewRequest(WithMethod("POST"), WithUrl(url),
-	// 	WithBody(payload), WithHeader(map[string]string{
-	// 		"referer": userQzoneURL,
-	// 		"origin":  userQzoneURL,
-	// 		"cookie":  s.Cookie,
-	// 	})))
 	if err != nil {
 		// er := errors.New("点赞请求错误:" + err.Error())
 		log.Println("空间点赞失败:", err)

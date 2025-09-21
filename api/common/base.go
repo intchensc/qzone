@@ -15,9 +15,9 @@ var (
 )
 
 type BaseAPI struct {
-	Qq     int64 // QQ号
+	Qq int64 // QQ号
+	//Gtk    string
 	Gtk    string
-	Gtk2   string
 	Pskey  string
 	Skey   string
 	Uin    string
@@ -25,7 +25,7 @@ type BaseAPI struct {
 	Err    error
 }
 
-// unpack 初始化信息,将成功扫码登录获取到的cookie解析
+// Unpack 初始化信息,将成功扫码登录获取到的cookie解析
 func (b *BaseAPI) Unpack(cookie string) {
 	for _, v := range strings.Split(cookie, ";") {
 		name, val, f := strings.Cut(v, "=")
@@ -41,7 +41,7 @@ func (b *BaseAPI) Unpack(cookie string) {
 		}
 	}
 	b.Gtk = genderGTK(b.Skey, 5381)
-	b.Gtk2 = genderGTK(b.Pskey, 5381)
+	b.Gtk = genderGTK(b.Pskey, 5381)
 	t, err := strconv.ParseInt(strings.TrimPrefix(b.Uin, "o"), 10, 64)
 	if err != nil {
 		log.Fatal(err)
