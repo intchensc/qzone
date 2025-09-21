@@ -25,12 +25,12 @@ var (
 	getQZoneHistory = "https://user.qzone.qq.com/proxy/domain/ic2.qzone.qq.com/cgi-bin/feeds/feeds2_html_pav_all?"
 )
 
-type GroupAPI struct {
+type API struct {
 	*common.BaseAPI
 }
 
 // QQGroupList 群列表获取
-func (g *GroupAPI) List() ([]*QQGroupResp, error) {
+func (g *API) List() ([]*QQGroupResp, error) {
 	if g.Err != nil {
 		return nil, g.Err
 	}
@@ -41,19 +41,13 @@ func (g *GroupAPI) List() ([]*QQGroupResp, error) {
 		Rd:      fmt.Sprintf("%010.8f", rand.Float64()),
 		Fupdate: "1",
 		Clean:   "1",
-		GTk:     g.Gtk2,
+		GTk:     g.Gtk,
 	}
 
 	var data string
 	url := getQQGroupURL + common.StructToStr(gr)
 	err := requests.URL(url).
 		UserAgent(ua).Header("cookie", g.Cookie).ToString(&data).Fetch(context.Background())
-	// data, err := DialRequest(NewRequest(WithUrl(url), WithHeader(map[string]string{
-	// url := getQQGroupURL + structToStr(gr)
-	// data, err := DialRequest(NewRequest(WithUrl(url), WithHeader(map[string]string{
-	// 	"user-agent": ua,
-	// 	"cookie":     g.cookie,
-	// })))
 	if err != nil {
 		// er := errors.New("QQ群请求错误:" + err.Error())
 		log.Println("QQ群获取失败:", err)
@@ -83,8 +77,8 @@ func (g *GroupAPI) List() ([]*QQGroupResp, error) {
 	return results, nil
 }
 
-// QQGroupMemberList 群友(非好友)列表获取
-func (g *GroupAPI) MemberList(gid int64) ([]*QQGroupMemberResp, error) {
+// MemberList  群友(非好友)列表获取
+func (g *API) MemberList(gid int64) ([]*QQGroupMemberResp, error) {
 	if g.Err != nil {
 		return nil, g.Err
 	}
@@ -93,7 +87,7 @@ func (g *GroupAPI) MemberList(gid int64) ([]*QQGroupMemberResp, error) {
 		Gid:     gid,
 		Fupdate: "1",
 		Type:    "1",
-		GTk:     g.Gtk2,
+		GTk:     g.Gtk,
 	}
 	// url := getQQGroupMemberURL + structToStr(gmr)
 	var data string

@@ -103,21 +103,7 @@ func (q *QrAuth) GenerateQRCode() (string, error) {
 		defer r.Body.Close()
 		return nil
 	}).Fetch(context.Background())
-
-	// data, err := DialRequest(NewRequest(
-	// 	WithUrl(ptqrshowURL),
-	// 	WithClient(&http.Client{CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-	// 		return http.ErrUseLastResponse
-	// 	}}),
-	// 	WithRespFunc(func(response *http.Response) {
-	// 		for _, v := range response.Cookies() {
-	// 			cookiesString = cookiesString + v.String()
-	// 			if v.Name == "qrsig" {
-	// 				q.qrsig = v.Value
-	// 				break
-	// 			}
-	// 		}
-	// 	})))
+	
 	if err != nil {
 		// er := errors.New("空间登录二维码显示错误:" + data)
 		fmt.Println(err)
@@ -167,21 +153,6 @@ func (q *QrAuth) CheckQRCodeStatus() (int8, error) {
 		defer r.Body.Close()
 		return nil
 	}).Fetch(context.Background())
-	// data, err := DialRequest(NewRequest(
-	// 	WithUrl(urls),
-	// 	WithHeader(map[string]string{
-	// 		"cookie": "qrsig=" + qrsign,
-	// 	}),
-	// 	WithClient(&http.Client{CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-	// 		return http.ErrUseLastResponse
-	// 	}}),
-	// 	WithRespFunc(func(response *http.Response) {
-	// 		for _, v := range response.Cookies() {
-	// 			if v.Value != "" {
-	// 				qcookie += v.Name + "=" + v.Value + ";"
-	// 			}
-	// 		}
-	// 	})))
 	if err != nil {
 		log.Println(err)
 		// return -1, er
@@ -231,18 +202,6 @@ func loginRedirect(redirectURL string) (string, error) {
 		defer r.Body.Close()
 		return nil
 	}).Fetch(context.Background())
-	// _, err = DialRequest(NewRequest(
-	// 	WithUrl(urls),
-	// 	WithClient(&http.Client{CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-	// 		return http.ErrUseLastResponse
-	// 	}}),
-	// 	WithRespFunc(func(response *http.Response) {
-	// 		for _, v := range response.Cookies() {
-	// 			if v.Value != "" {
-	// 				cookie += v.Name + "=" + v.Value + ";"
-	// 			}
-	// 		}
-	// 	})))
 	if errr != nil {
 		// return "", errors.New("空间登录重定向链接请求错误:" + errr)
 	}
